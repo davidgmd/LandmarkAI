@@ -29,6 +29,10 @@ namespace LandmarkAI
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
+            if (dialog.ShowDialog() == true)
+            {
+                string filename = dialog.FileName;
+            }
         }
     }
 }
