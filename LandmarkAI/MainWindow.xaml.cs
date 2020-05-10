@@ -1,7 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,9 +31,38 @@ namespace LandmarkAI
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog dialog = new OpenFileDialog();
+            //En filter primero indicamos el texto y separado por | indicamos las extensiones estas si se aplican
+            dialog.Filter = "Image Files (*.png; *.jpg)|*.png;*.jpg;*.jpeg";
+            dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
             if (dialog.ShowDialog() == true)
             {
                 string filename = dialog.FileName;
+                selectedImage.Source = new BitmapImage(new Uri(filename));
+
+                MakePredictionAsync(filename);
+            }
+        }
+
+        private async void MakePredictionAsync(string filename)
+        {
+            string url = "https://westeurope.api.cognitive.microsoft.com/customvision/v3.0/Prediction/5a09f57d-6c7d-4383-a1d2-6b8611c1d9ac/classify/iterations/Iteration1/image";
+            string predictionKey = "3fe71b3a24124dff8f7c30b6cf72c78f";
+            string contentType = "application/octet-stream";
+            string Body = "<image file>";
+            var file = File.ReadAllBytes(filename);
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("Prediction-Key", predictionKey);
+                
+                using(var content = new ByteArrayContent(file))
+                {
+                    content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+                    var response = await client.PostAsync(url, content);
+
+                    var responseString = await response.Content.ReadAsStringAsync();
+                }
             }
         }
     }
